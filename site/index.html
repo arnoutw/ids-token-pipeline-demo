@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="A miniature Figma to Tokens Studio to GitHub token pipeline." />
+    <title>IDS token pipeline demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/tokens.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="IDS demo home">IDS <span>mini</span></a>
+      <nav aria-label="Page links">
+        <a href="#states">States</a>
+        <a href="#tokens">Tokens</a>
+        <a href="#code">Code</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="eyebrow">Figma → Tokens Studio → GitHub → product</p>
+        <h1>One button.<br /><span>One visible pipeline.</span></h1>
+        <p class="lede">
+          A deliberately small reconstruction of the IDS workflow. Change one core brand value in Figma,
+          push the Tokens Studio file, and this page rebuilds from generated CSS and flattened JSON.
+        </p>
+        <div class="flow" aria-label="Pipeline">
+          <span>Figma variables</span><b>→</b><span>Tokens Studio</span><b>→</b><span>GitHub Actions</span><b>→</b><span>This page</span>
+        </div>
+      </section>
+
+      <section class="section" id="states">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Component</p>
+            <h2>Brand Primary button</h2>
+          </div>
+          <p>Medium · text only · four states</p>
+        </div>
+
+        <div class="state-grid">
+          <article class="state-card">
+            <span class="state-name">Default</span>
+            <button class="ids-button" type="button">Label</button>
+            <code>enabled</code>
+          </article>
+          <article class="state-card">
+            <span class="state-name">Hover</span>
+            <button class="ids-button" data-state="hover" type="button">Label</button>
+            <code>hovered</code>
+          </article>
+          <article class="state-card">
+            <span class="state-name">Focused</span>
+            <button class="ids-button" data-state="focused" type="button">Label</button>
+            <code>focused + ring</code>
+          </article>
+          <article class="state-card">
+            <span class="state-name">Pressed</span>
+            <button class="ids-button" data-state="pressed" type="button">Label</button>
+            <code>pressed</code>
+          </article>
+        </div>
+
+        <div class="try-card">
+          <div>
+            <p class="kicker">Try it</p>
+            <h3>The same component is interactive</h3>
+            <p>Hover, tab to focus, and press it. Every state reads the generated variables.</p>
+          </div>
+          <button class="ids-button ids-button--large" type="button">Interactive button</button>
+        </div>
+      </section>
+
+      <section class="section" id="tokens">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Traceability</p>
+            <h2>The token chain</h2>
+          </div>
+          <p id="build-status">Reading generated build…</p>
+        </div>
+
+        <div class="token-chain">
+          <div class="token-node">
+            <span>Core</span>
+            <strong>brand/500</strong>
+            <code id="core-value">#5D176A</code>
+          </div>
+          <b>→</b>
+          <div class="token-node">
+            <span>Semantic</span>
+            <strong>interactive-primary-brand/enabled</strong>
+            <code>{Core.brand.500}</code>
+          </div>
+          <b>→</b>
+          <div class="token-node">
+            <span>CSS</span>
+            <strong>--interactive-primary-brand-enabled</strong>
+            <code>var(--brand-500)</code>
+          </div>
+        </div>
+
+        <div class="palette" aria-label="Core brand colours">
+          <div style="--swatch: var(--brand-50)"><span>50</span><code data-token="brand.50">#EFE8F0</code></div>
+          <div style="--swatch: var(--brand-500)"><span>500</span><code data-token="brand.500">#5D176A</code></div>
+          <div style="--swatch: var(--brand-600)"><span>600</span><code data-token="brand.600">#551560</code></div>
+          <div style="--swatch: var(--brand-700)"><span>700</span><code data-token="brand.700">#42104B</code></div>
+          <div style="--swatch: var(--brand-800)"><span>800</span><code data-token="brand.800">#330D3A</code></div>
+        </div>
+
+        <div class="artifact-links">
+          <a href="assets/tokens.json">Tokens Studio JSON</a>
+          <a href="assets/flattened-tokens.json">Flattened JSON</a>
+          <a href="assets/tokens.css">Generated CSS</a>
+        </div>
+      </section>
+
+      <section class="section" id="code">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Consume it</p>
+            <h2>Copy the implementation</h2>
+          </div>
+          <p>No framework required</p>
+        </div>
+
+        <div class="code-grid">
+          <article class="code-card">
+            <div><span>HTML</span><button class="copy-button" data-copy="html-code" type="button">Copy</button></div>
+            <pre><code id="html-code">&lt;button class="ids-button" type="button"&gt;
+  Continue
+&lt;/button&gt;</code></pre>
+          </article>
+          <article class="code-card">
+            <div><span>CSS</span><button class="copy-button" data-copy="css-code" type="button">Copy</button></div>
+            <pre><code id="css-code">.ids-button {
+  color: var(--interactive-primary-brand-label);
+  background: var(--interactive-primary-brand-enabled);
+  padding: var(--space-control-block)
+           var(--space-control-inline);
+  border-radius: var(--radius-control);
+}
+
+.ids-button:hover {
+  background: var(--interactive-primary-brand-hovered);
+}</code></pre>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Mini pipeline demo · intentionally limited to Brand Primary</p>
+      <p>Source: <code>tokens/tokens.json</code></p>
+    </footer>
+  </body>
+</html>
