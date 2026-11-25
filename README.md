@@ -73,7 +73,7 @@ Do not put the personal access token in Figma text, this repository, or the demo
 3. In Tokens Studio, use **Import → Variables → Existing tokens → Update all**.
 4. Push `tokens/tokens.json` to `main`.
 5. Open the GitHub Actions run and wait for the Pages deployment.
-6. Refresh the documentation page and open Storybook. The default button and the `brand/500` swatch now use the new value. Open **Accessibility** in Storybook to inspect automated findings for the selected story.
+6. Refresh the documentation page and Storybook once the deployment is green. Each refresh requests the token assets and Storybook preview with a fresh URL. The default button and the `brand/500` swatch now use the new value. Open **Accessibility** in Storybook to inspect automated findings for the selected story.
 
 The semantic token remains stable:
 

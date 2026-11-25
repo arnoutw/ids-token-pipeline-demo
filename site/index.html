@@ -8,7 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="assets/tokens.css" />
+    <link id="token-stylesheet" rel="stylesheet" href="assets/tokens.css" />
+    <script>
+      // GitHub Pages can keep the previous contents of a fixed asset URL cached.
+      const tokenStylesheet = document.getElementById("token-stylesheet");
+      tokenStylesheet.href += `?idsBuildReload=${Date.now()}`;
+    </script>
     <link rel="stylesheet" href="button.css" />
     <link rel="stylesheet" href="styles.css" />
     <script src="app.js" defer></script>

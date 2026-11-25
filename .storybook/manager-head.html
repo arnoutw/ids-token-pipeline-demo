@@ -1,0 +1,7 @@
+<script>
+  // Storybook forwards custom URL parameters to its preview iframe.
+  // Refresh the iframe document URL while retaining the selected story and controls.
+  const managerUrl = new URL(window.location.href);
+  managerUrl.searchParams.set("idsPreviewReload", Date.now().toString());
+  window.history.replaceState(window.history.state, "", managerUrl);
+</script>

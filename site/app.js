@@ -1,11 +1,10 @@
-const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-
 async function hydrateBuild() {
   const status = document.querySelector("#build-status");
+  const buildQuery = new URL(document.querySelector("#token-stylesheet").href).search;
   try {
     const [buildResponse, tokenResponse] = await Promise.all([
-      fetch("assets/build.json", { cache: "no-store" }),
-      fetch("assets/flattened-tokens.json", { cache: "no-store" }),
+      fetch(`assets/build.json${buildQuery}`, { cache: "no-store" }),
+      fetch(`assets/flattened-tokens.json${buildQuery}`, { cache: "no-store" }),
     ]);
     const build = await buildResponse.json();
     const tokens = await tokenResponse.json();
