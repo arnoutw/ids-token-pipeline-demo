@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="A miniature Figma to Tokens Studio to GitHub token pipeline." />
+    <meta name="description" content="An IDS demo showing how Figma tokens are used in CSS, JSON and Storybook." />
     <title>IDS token pipeline demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="IDS demo home">IDS <span>mini</span></a>
+      <a class="wordmark" href="#top" aria-label="IDS demo home">IDS <span>demo</span></a>
       <nav aria-label="Page links">
         <a href="#states">States</a>
         <a href="#tokens">Tokens</a>
@@ -30,14 +30,15 @@
 
     <main id="top">
       <section class="hero">
-        <p class="eyebrow">Figma → Tokens Studio → GitHub → product</p>
-        <h1>One button.<br /><span>One visible pipeline.</span></h1>
+        <h1>IDS token pipeline demo</h1>
         <p class="lede">
-          A deliberately small reconstruction of the IDS workflow. Change one core brand value in Figma,
-          push the Tokens Studio file, and this page rebuilds from generated CSS and flattened JSON.
+          This demo shows how a colour change in Figma becomes CSS and JSON and updates the same button here and in Storybook.
         </p>
         <div class="flow" aria-label="Pipeline">
-          <span>Figma variables</span><b>→</b><span>Tokens Studio</span><b>→</b><span>GitHub Actions</span><b>→</b><span>This page</span>
+          <span>Figma variables</span>
+          <span><b aria-hidden="true">→</b> Tokens Studio</span>
+          <span><b aria-hidden="true">→</b> GitHub Actions</span>
+          <span><b aria-hidden="true">→</b> Demo and Storybook</span>
         </div>
       </section>
 
@@ -75,9 +76,8 @@
 
         <div class="try-card">
           <div>
-            <p class="kicker">Try it</p>
-            <h3>The same component is interactive</h3>
-            <p>Hover, tab to focus, and press it. Every state reads the generated variables.</p>
+            <h3>Try the button</h3>
+            <p>Hover over it, move focus to it with Tab, or press it.</p>
           </div>
           <button class="ids-button ids-button--large" type="button">Interactive button</button>
         </div>
@@ -138,7 +138,6 @@
             <p class="kicker">Consume it</p>
             <h2>Copy the implementation</h2>
           </div>
-          <p>No framework required</p>
         </div>
 
         <div class="code-grid">
