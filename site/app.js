@@ -10,6 +10,7 @@ async function hydrateBuild() {
     const build = await buildResponse.json();
     const tokens = await tokenResponse.json();
     status.textContent = `${build.tokenCount} tokens · ${build.commit}`;
+    document.querySelector("#storybook-link").hidden = !build.storybook;
     document.querySelector("#core-value").textContent = tokens["brand.500"].$value;
     document.querySelectorAll("[data-token]").forEach((element) => {
       const item = tokens[element.dataset.token];

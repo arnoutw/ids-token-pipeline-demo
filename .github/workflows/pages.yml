@@ -3,20 +3,15 @@ name: Build and deploy token demo
 on:
   push:
     branches: [main]
-    paths:
-      - "tokens/**"
-      - "site/**"
-      - "scripts/build.py"
-      - ".github/workflows/pages.yml"
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,20 +21,42 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
-      - name: Set up Pages
-        uses: actions/configure-pages@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
-          enablement: true
+          node-version: "24"
 
-      - name: Build CSS and flattened JSON
-        run: python3 scripts/build.py
+      - name: Install build dependencies
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm install --frozen-lockfile
+
+      - name: Build Storybook, CSS and JSON
+        env:
+          STORYBOOK_DISABLE_TELEMETRY: "1"
+        run: pnpm run build
+
+      - name: Upload pull request preview
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ids-preview-pr-${{ github.event.number }}
+          path: dist/site
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
         with:
           path: dist/site
 
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

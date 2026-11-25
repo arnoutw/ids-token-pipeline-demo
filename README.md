@@ -4,6 +4,7 @@ A deliberately small reconstruction of the design-token workflow: one **Brand Pr
 
 - Repository: <https://github.com/arnoutw/ids-token-pipeline-demo>
 - Demo page: <https://arnoutw.github.io/ids-token-pipeline-demo/>
+- Storybook: <https://arnoutw.github.io/ids-token-pipeline-demo/storybook/?path=/story/ids-brand-primary-button--interactive>
 
 ## What is included
 
@@ -13,6 +14,7 @@ A deliberately small reconstruction of the design-token workflow: one **Brand Pr
 - one Tokens Studio single-file source at `tokens/tokens.json`
 - a dependency-free Python build that creates `tokens.css` and `flattened-tokens.json`
 - a one-page component documentation site
+- a Storybook with the same Button styles and generated tokens, including the Accessibility panel
 - GitHub Actions deployment to GitHub Pages
 - a local demo runner for macOS
 
@@ -31,6 +33,16 @@ For a one-off build:
 ```bash
 python3 scripts/build.py
 ```
+
+To build the whole site, including Storybook, use Node 24, pnpm and Python 3:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build
+python3 -m http.server 8000 --bind 127.0.0.1 --directory dist/site
+```
+
+Open <http://127.0.0.1:8000/>. For Storybook development on its own, run `pnpm run storybook`. Restart it after changing the source tokens so the CSS is regenerated.
 
 ## Tokens Studio setup
 
@@ -61,7 +73,7 @@ Do not put the personal access token in Figma text, this repository, or the demo
 3. In Tokens Studio, use **Import → Variables → Existing tokens → Update all**.
 4. Push `tokens/tokens.json` to `main`.
 5. Open the GitHub Actions run and wait for the Pages deployment.
-6. Refresh the documentation page. The Default button and the `brand/500` swatch now use the new value.
+6. Refresh the documentation page and open Storybook. The default button and the `brand/500` swatch now use the new value. Open **Accessibility** in Storybook to inspect automated findings for the selected story.
 
 The semantic token remains stable:
 
@@ -85,6 +97,12 @@ Generated into `dist/site/assets/`:
 - `build.json` — timestamp, commit, source, and token count
 
 `dist/` is not committed. GitHub Actions builds it from source on every relevant push.
+
+## Review a token change
+
+A pull request runs the same full build and uploads an `ids-preview-pr-…` artifact to the Actions run. Extract it and serve the extracted directory (the one containing `index.html`) with `python3 -m http.server 8000 --bind 127.0.0.1` from inside that directory. The preview includes the generated CSS, source JSON and resolved JSON from that build. Pushes to `main` publish the full build to the existing GitHub Pages site.
+
+In Storybook, open the **Accessibility** panel for Interactive, Hover, Focused or Pressed. The add-on runs automated axe checks against the rendered example. Use the Interactive story to check real keyboard focus with Tab. Check focus visibility and screen-reader behaviour manually.
 
 ## Scope and provenance
 

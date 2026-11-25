@@ -1,0 +1,16 @@
+{
+  "name": "ids-token-pipeline-demo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "storybook": "python3 scripts/build.py && storybook dev --host 127.0.0.1 -p 6006",
+    "build": "python3 scripts/build.py --with-storybook && storybook build --output-dir dist/site/storybook --disable-telemetry"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "10.6.8",
+    "@storybook/html-vite": "10.6.8",
+    "storybook": "10.6.8",
+    "vite": "^7.0.0"
+  }
+}

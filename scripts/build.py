@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -193,6 +194,10 @@ def build_flattened(tokens: List[Dict[str, Any]], lookup: Dict[str, Dict[str, An
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--with-storybook", action="store_true", help="Include the Storybook preview link")
+    args = parser.parse_args()
+
     tokens = load_tokens()
     lookup = make_lookup(tokens)
     flattened = build_flattened(tokens, lookup)
@@ -214,6 +219,7 @@ def main() -> None:
         "commit": os.environ.get("GITHUB_SHA", "local")[:12],
         "tokenCount": len(tokens),
         "source": "tokens/tokens.json",
+        "storybook": args.with_storybook,
     }
     (ASSETS / "build.json").write_text(
         json.dumps(metadata, indent=2) + "\n",
