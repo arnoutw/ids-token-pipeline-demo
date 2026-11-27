@@ -1,6 +1,6 @@
 # IDS Token Pipeline Demo
 
-A small reconstruction of the design-token workflow with one **Brand Primary** button, four states and two demo brands. Both brands use the same semantic tokens and Button CSS. Brand A keeps the original purple palette. Brand B is a fictional teal palette for this exercise.
+A small reconstruction of the design-token workflow with one **Brand Primary** button, four states and two fictional brands. Both use the same semantic tokens and Button CSS. Brand A uses purple and Montserrat. Brand B uses teal and Source Sans 3.
 
 - Repository: <https://github.com/arnoutw/ids-token-pipeline-demo>
 - Demo page: <https://arnoutw.github.io/ids-token-pipeline-demo/>
@@ -11,6 +11,7 @@ A small reconstruction of the design-token workflow with one **Brand Primary** b
 - Figma file: [IDS Token Pipeline Demo](https://www.figma.com/design/oSw8jYUHN4wuXkYFELq7l1)
 - `Core` Figma variable collection with Brand A and Brand B modes, and one `Semantic` collection with shared aliases
 - `Button / Brand Primary` with Default, Hover, Focused, and Pressed variants
+- reusable `State caption` instances above the buttons in the Figma comparison, with captions generated from the sample states in Storybook
 - one Tokens Studio single-file source at `tokens/tokens.json`
 - a dependency-free Python build that validates both brands and creates standalone CSS and JSON for each
 - a one-page component documentation site
@@ -81,9 +82,13 @@ Semantic.button.primary.background.default
 
 Under `button/primary`, each background state has its own token. The label and ring use `text` and `focus-ring`. The focus example uses a 3px outline and a 2px gap. Give keyboard-focusable controls 5px of clearance inside containers that clip content.
 
+The same `typography/control/font-family` role resolves to `font/family/ui` in the active brand mode. The button shares size, line height, weight and spacing across brands. The documentation captions use a common style and sit next to the button instances in the specimen. Figma may import the font-family variables as generic text tokens. Keep `$type: "fontFamily"` when reconciling the two typography tokens with the reviewed source so the CSS build quotes multiword family names correctly.
+
 ## Consume a brand
 
 GitHub Actions produces a separate `ids-brand-a-<sha>` and `ids-brand-b-<sha>` download per successful build, including pull requests. Pick the desired brand from a reviewed commit. Each download contains `tokens.css`, resolved `tokens.json`, the shared `button.css`, and build provenance in `build.json`. Load `tokens.css` before `button.css` and use the same `<button class="ids-button" type="button">Continue</button>` markup. Each brand CSS file is standalone and sets its values on `:root`.
+
+Load the chosen webfont at weight 500 in the consuming app. The demo and Storybook load both fonts for comparison. In a production rollout, confirm font licensing and supported languages with the brand team and agree on hosted font assets, including offline delivery for kiosks where required.
 
 The preview uses the combined `dist/site/assets/tokens.css` with `data-brand` scopes so both brands can appear together. `dist/site/assets/themes/<brand>/` holds the standalone outputs. The older `flattened-tokens.json` URL remains the Brand A snapshot. GitHub Pages serves the latest demo after a successful build on `main`.
 

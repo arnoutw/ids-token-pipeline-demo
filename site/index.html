@@ -7,7 +7,7 @@
     <title>IDS token pipeline demo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&amp;family=Source+Sans+3:wght@500&amp;display=swap" rel="stylesheet" />
     <link id="token-stylesheet" rel="stylesheet" href="assets/tokens.css" />
     <script>
       // GitHub Pages can keep the previous contents of a fixed asset URL cached.
@@ -32,7 +32,7 @@
       <section class="hero">
         <h1>IDS token pipeline demo</h1>
         <p class="lede">
-          Switch brands to see the same button use a different set of design tokens. Each brand gets its own CSS and JSON from the same build.
+          Switch brands to see the same button change colour and typeface. Each brand gets its own CSS and JSON from the same build.
         </p>
         <div class="flow" aria-label="Pipeline">
           <span>Figma variables</span>
@@ -48,12 +48,14 @@
             <p class="kicker">Component</p>
             <h2>Brand Primary button</h2>
           </div>
-          <label class="brand-picker" for="brand">Preview brand
+          <div class="brand-picker">
+            <label for="brand">Preview brand</label>
             <select id="brand">
-              <option value="brand-a">Brand A (purple)</option>
-              <option value="brand-b">Brand B (teal)</option>
+              <option value="brand-a">Brand A</option>
+              <option value="brand-b">Brand B</option>
             </select>
-          </label>
+            <output id="brand-typeface" for="brand"></output>
+          </div>
         </div>
 
         <div class="state-grid">
@@ -159,6 +161,7 @@
             <pre><code id="css-code">.ids-button {
   color: var(--button-primary-text);
   background: var(--button-primary-background-default);
+  font-family: var(--typography-control-font-family), Arial, sans-serif;
   padding: var(--space-control-block)
            var(--space-control-inline);
   border-radius: var(--radius-control);
