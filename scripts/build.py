@@ -72,6 +72,10 @@ def css_name(parts: Iterable[str]) -> str:
 
 
 def css_scalar(value: Any, token_type: str, path: Tuple[str, ...]) -> str:
+    if token_type == "fontFamily":
+        if not isinstance(value, str) or not re.fullmatch(r"[\w -]+", value) or not value.strip():
+            raise BuildError(f"Expected a single font family in {'.'.join(path)}")
+        return json.dumps(value, ensure_ascii=False)
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, (int, float)):
@@ -223,6 +227,11 @@ def contrast(a: Any, b: Any) -> float:
 
 
 def validate_brand(brand: str, flat: Dict[str, Any]) -> None:
+    font = flat.get("typography.control.font-family")
+    if not font or font["$type"] != "fontFamily":
+        raise BuildError(f"{brand}: missing typography.control.font-family fontFamily token")
+    css_scalar(font["$value"], "fontFamily", ("typography", "control", "font-family"))
+
     roles = (*(f"background.{state}" for state in STATES), "text", "focus-ring")
     missing = [role for role in roles if BUTTON_TOKEN + role not in flat]
     if missing:

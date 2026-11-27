@@ -11,9 +11,10 @@
   background: #f7f6f8;
 }
 
-.brand-comparison h2 { margin: 0 0 14px; font-size: 18px; }
+.brand-comparison h2 { margin: 0 0 4px; font-size: 18px; }
+.brand-typeface { margin: 0 0 16px; color: #56505f; font-size: 13px; }
 .brand-comparison-states { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.brand-comparison-states p { margin: 0 0 8px; font-size: 13px; }
+.state-caption { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
 
 @media (max-width: 550px) {
   .brand-comparison-states { grid-template-columns: repeat(2, minmax(0, 1fr)); }

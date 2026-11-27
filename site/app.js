@@ -27,6 +27,7 @@ async function showBrand() {
     ]);
     if (picker.value !== brand) return;
     status.textContent = `${name} · ${build.tokenCount} tokens · ${build.commit}`;
+    document.querySelector("#brand-typeface").textContent = tokens["typography.control.font-family"].$value;
     document.querySelector("#storybook-link").hidden = !build.storybook;
     document.querySelector("#core-value").textContent = tokens["brand.500"].$value;
     document.querySelectorAll("[data-token]").forEach((element) => {
