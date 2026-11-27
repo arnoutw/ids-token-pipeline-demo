@@ -36,6 +36,20 @@ jobs:
           STORYBOOK_DISABLE_TELEMETRY: "1"
         run: pnpm run build
 
+      - name: Upload Brand A handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: ids-brand-a-${{ github.sha }}
+          path: dist/site/assets/themes/brand-a
+          if-no-files-found: error
+
+      - name: Upload Brand B handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: ids-brand-b-${{ github.sha }}
+          path: dist/site/assets/themes/brand-b
+          if-no-files-found: error
+
       - name: Upload pull request preview
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4

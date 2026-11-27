@@ -32,12 +32,12 @@
       <section class="hero">
         <h1>IDS token pipeline demo</h1>
         <p class="lede">
-          This demo shows how a colour change in Figma becomes CSS and JSON and updates the same button here and in Storybook.
+          Switch brands to see the same button use a different set of design tokens. Each brand gets its own CSS and JSON from the same build.
         </p>
         <div class="flow" aria-label="Pipeline">
           <span>Figma variables</span>
           <span><b aria-hidden="true">→</b> Tokens Studio</span>
-          <span><b aria-hidden="true">→</b> GitHub Actions</span>
+          <span><b aria-hidden="true">→</b> Pull request and GitHub Actions</span>
           <span><b aria-hidden="true">→</b> Demo and Storybook</span>
         </div>
       </section>
@@ -48,7 +48,12 @@
             <p class="kicker">Component</p>
             <h2>Brand Primary button</h2>
           </div>
-          <p>Medium · text only · four states</p>
+          <label class="brand-picker" for="brand">Preview brand
+            <select id="brand">
+              <option value="brand-a">Brand A (purple)</option>
+              <option value="brand-b">Brand B (teal)</option>
+            </select>
+          </label>
         </div>
 
         <div class="state-grid">
@@ -84,6 +89,7 @@
         <div id="storybook-link" hidden>
           <div class="artifact-links">
             <a href="storybook/?path=/story/ids-brand-primary-button--interactive">Open Button in Storybook</a>
+            <a href="storybook/?path=/story/ids-brand-primary-button--compare-brands">Compare brands in Storybook</a>
           </div>
         </div>
       </section>
@@ -107,7 +113,7 @@
           <div class="token-node">
             <span>Semantic</span>
             <strong>interactive-primary-brand/enabled</strong>
-            <code>{Core.brand.500}</code>
+            <code>{brand.500}</code>
           </div>
           <b>→</b>
           <div class="token-node">
@@ -127,8 +133,9 @@
 
         <div class="artifact-links">
           <a href="assets/tokens.json">Tokens Studio JSON</a>
-          <a href="assets/flattened-tokens.json">Flattened JSON</a>
-          <a href="assets/tokens.css">Generated CSS</a>
+          <a id="brand-json" href="assets/themes/brand-a/tokens.json">Brand A JSON</a>
+          <a id="brand-css" href="assets/themes/brand-a/tokens.css">Brand A CSS</a>
+          <a href="button.css">Shared Button CSS</a>
         </div>
       </section>
 

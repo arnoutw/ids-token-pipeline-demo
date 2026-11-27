@@ -21,3 +21,12 @@
 .ids-button:focus-visible, .ids-button[data-state="focused"] { outline: 0; background: var(--interactive-primary-brand-focused); box-shadow: 0 0 0 3px var(--interactive-primary-brand-ring); }
 .ids-button:active, .ids-button[data-state="pressed"] { background: var(--interactive-primary-brand-pressed); transform: translateY(1px); }
 .ids-button--large { min-width: 190px; }
+
+@media (forced-colors: active) {
+  .ids-button { border: 1px solid ButtonText; }
+  .ids-button:focus-visible, .ids-button[data-state="focused"] { outline: 2px solid Highlight; outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ids-button { transition: none; }
+}
