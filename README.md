@@ -1,6 +1,6 @@
 # IDS Token Pipeline Demo
 
-A deliberately small reconstruction of the design-token workflow: one **Brand Primary** button, four states, and a traceable path from Figma variables to generated CSS and flattened JSON.
+A small reconstruction of the design-token workflow with one **Brand Primary** button, four states and two demo brands. Both brands use the same semantic tokens and Button CSS. Brand A keeps the original purple palette. Brand B is a fictional teal palette for this exercise.
 
 - Repository: <https://github.com/arnoutw/ids-token-pipeline-demo>
 - Demo page: <https://arnoutw.github.io/ids-token-pipeline-demo/>
@@ -9,10 +9,10 @@ A deliberately small reconstruction of the design-token workflow: one **Brand Pr
 ## What is included
 
 - Figma file: [IDS Token Pipeline Demo](https://www.figma.com/design/oSw8jYUHN4wuXkYFELq7l1)
-- `Core` and `Semantic` Figma variable collections with aliases
+- `Core` Figma variable collection with Brand A and Brand B modes, and one `Semantic` collection with shared aliases
 - `Button / Brand Primary` with Default, Hover, Focused, and Pressed variants
 - one Tokens Studio single-file source at `tokens/tokens.json`
-- a dependency-free Python build that creates `tokens.css` and `flattened-tokens.json`
+- a dependency-free Python build that validates both brands and creates standalone CSS and JSON for each
 - a one-page component documentation site
 - a Storybook with the same Button styles and generated tokens, including the Accessibility panel
 - GitHub Actions deployment to GitHub Pages
@@ -44,65 +44,57 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory dist/site
 
 Open <http://127.0.0.1:8000/>. For Storybook development on its own, run `pnpm run storybook`. Restart it after changing the source tokens so the CSS is regenerated.
 
-## Tokens Studio setup
+## Propose a token change
 
-The free Tokens Studio plan can use a single JSON file, which keeps this demo intentionally small.
+The demo uses a Tokens Studio single-file export. Git is the build and release source. Figma is where design authors and reviews the proposal. The build selects one `Core/Brand A` or `Core/Brand B` set and combines it with `Semantic/Value`.
 
-1. Open the Tokens Studio plugin in the Figma file.
-2. Start with a new empty token file.
-3. Choose **Import → Variables → Import all**. This creates tokens attached to the native Figma variables.
-4. Add a GitHub sync provider with:
+1. Start a branch from `main`. In Figma, select the `Core` mode for the brand you want to change and edit `brand/500`. Keep the other mode unchanged. In the comparison frame, check the states using the changed brand alongside the other brand.
+2. In Tokens Studio, choose **Styles & Variables → Import variables**. Select both Core modes and the Semantic collection, enable **Convert numbers to dimensions**, then review the import and choose **Import all**.
+3. Without Tokens Studio branching, choose **Load and export → Export to file/folder → Single file**, then enable **All token sets** and **Include parent key**. Compare the export with `tokens/tokens.json` and commit the reviewed changes on the branch. The token sets used by the button are `Core/Brand A`, `Core/Brand B` and `Semantic/Value`.
+
+   With Tokens Studio branching enabled, you can also sync directly to the review branch using this provider configuration.
 
    | Field | Value |
    |---|---|
    | Name | `IDS demo` |
    | Personal access token | a GitHub token with access to this repository |
    | Repository | `arnoutw/ids-token-pipeline-demo` |
-   | Branch | `main` |
+   | Branch | your token change branch |
    | Token storage | `tokens/tokens.json` |
    | Base URL | leave blank for github.com |
 
-5. Push from Tokens Studio. The first push may replace the seed JSON with the plugin's equivalent single-file structure; the build accepts both `$value`/`$type` and legacy `value`/`type` token syntax.
+4. Open a pull request. Review the token diff and use the Actions preview to check both brands. In Storybook, use the Brand toolbar in **Interactive** and use **Compare Brands** to view the states together. Tab to the button to check real focus. The Accessibility panel provides automated checks for the selected story.
 
 Do not put the personal access token in Figma text, this repository, or the demo page.
 
-## Thursday demo flow
-
-1. Show the button states and generated artifacts on the documentation page.
-2. In Figma, change **Core → brand → 500**.
-3. In Tokens Studio, use **Import → Variables → Existing tokens → Update all**.
-4. Push `tokens/tokens.json` to `main`.
-5. Open the GitHub Actions run and wait for the Pages deployment.
-6. Refresh the documentation page and Storybook once the deployment is green. Each refresh requests the token assets and Storybook preview with a fresh URL. The default button and the `brand/500` swatch now use the new value. Open **Accessibility** in Storybook to inspect automated findings for the selected story.
-
-The semantic token remains stable:
+Both brands use the same token chain.
 
 ```text
-Core.brand.500
+Core / Brand A or Brand B / brand/500
     ↓
-Semantic.interactive-primary-brand.enabled
+Semantic.button.primary.background.default
     ↓
---interactive-primary-brand-enabled
+--button-primary-background-default
     ↓
 .ids-button
 ```
 
-## Build outputs
+Under `button/primary`, each background state has its own token. The label and ring use `text` and `focus-ring`. The focus example uses a 3px outline and a 2px gap. Give keyboard-focusable controls 5px of clearance inside containers that clip content.
 
-Generated into `dist/site/assets/`:
+## Consume a brand
 
-- `tokens.json` — the source synchronized by Tokens Studio
-- `flattened-tokens.json` — aliases resolved for easy inspection
-- `tokens.css` — CSS custom properties, preserving semantic references
-- `build.json` — timestamp, commit, source, and token count
+GitHub Actions produces a separate `ids-brand-a-<sha>` and `ids-brand-b-<sha>` download per successful build, including pull requests. Pick the desired brand from a reviewed commit. Each download contains `tokens.css`, resolved `tokens.json`, the shared `button.css`, and build provenance in `build.json`. Load `tokens.css` before `button.css` and use the same `<button class="ids-button" type="button">Continue</button>` markup. Each brand CSS file is standalone and sets its values on `:root`.
 
-`dist/` is not committed. GitHub Actions builds it from source on every relevant push.
+The preview uses the combined `dist/site/assets/tokens.css` with `data-brand` scopes so both brands can appear together. `dist/site/assets/themes/<brand>/` holds the standalone outputs. The older `flattened-tokens.json` URL remains the Brand A snapshot. GitHub Pages serves the latest demo after a successful build on `main`.
 
-## Review a token change
+## Ownership and releases
 
-A pull request runs the same full build and uploads an `ids-preview-pr-…` artifact to the Actions run. Extract it and serve the extracted directory (the one containing `index.html`) with `python3 -m http.server 8000 --bind 127.0.0.1` from inside that directory. The preview includes the generated CSS, source JSON and resolved JSON from that build. Pushes to `main` publish the full build to the existing GitHub Pages site.
+- **Brand changes** are proposed and reviewed by the brand owner. The design-system maintainer reviews the impact on shared aliases and checks the other brand in the preview.
+- **Shared changes** to token names, states or Button CSS belong to the design-system maintainers. Review with the affected consumers and document migrations for breaking changes. A change to the name or type of a shared token is a contract change.
+- **Automated checks** resolve aliases for each brand independently, reject duplicate CSS names and token contract mismatches, check label contrast in the four states and ring contrast against the demo surfaces, then build Storybook. These checks cover the demo surfaces. Product teams test their actual backgrounds, keyboard behaviour and kiosk hardware as appropriate.
+- **Production setup** would protect `main` with required PR reviews and build checks, and assign actual reviewers with `CODEOWNERS`. This compact single-file export has one review boundary. Split shared and per-brand source sets into separate paths when brand teams need independent code ownership. Use tagged, versioned packages or immutable release assets for consumption, with changelogs and dependency pinning for rollback. Actions downloads are review artifacts, and Pages hosts the demo.
 
-In Storybook, open the **Accessibility** panel for Interactive, Hover, Focused or Pressed. The add-on runs automated axe checks against the rendered example. Use the Interactive story to check real keyboard focus with Tab. Check focus visibility and screen-reader behaviour manually.
+To view a PR build, extract the `ids-preview-pr-…` Actions artifact and serve the extracted folder with `python3 -m http.server 8000 --bind 127.0.0.1`. The same output is available locally with `pnpm run build`.
 
 ## Scope and provenance
 

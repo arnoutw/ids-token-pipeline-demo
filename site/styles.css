@@ -53,11 +53,13 @@ main { width: min(1180px, 90vw); margin: 0 auto; }
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 46px; }
 .section-heading h2 { margin: 0; font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.045em; }
 .section-heading > p { max-width: 340px; margin: 0; color: var(--muted); font-size: 13px; text-align: right; }
+.brand-picker { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
+.brand-picker select { min-height: 40px; padding: 0 12px; border: 1px solid var(--muted); border-radius: 6px; background: var(--paper); color: var(--ink); font: inherit; }
 
 .state-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 .state-card { display: flex; min-height: 210px; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 22px; border: 1px solid var(--line); border-radius: 8px; background: #fbfafc; }
 .state-name { font-size: 13px; font-weight: 700; }
-.state-card > code { color: var(--muted); font-size: 11px; }
+.state-card > code { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 
 .try-card { display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-top: 24px; padding: 28px 32px; border-radius: 8px; background: #f4eff5; }
 .try-card h3 { margin: 0 0 8px; font-size: 20px; }

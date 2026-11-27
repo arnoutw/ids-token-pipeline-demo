@@ -19,6 +19,10 @@ SITE = ROOT / "site"
 OUTPUT = ROOT / "dist" / "site"
 ASSETS = OUTPUT / "assets"
 REFERENCE = re.compile(r"^\{([^{}]+)\}$")
+BRANDS = {"brand-a": "Core/Brand A", "brand-b": "Core/Brand B"}
+BUTTON_TOKEN = "button.primary."
+STATES = ("default", "hover", "focus", "pressed")
+PREVIEW_SURFACES = ("#ffffff", "#fbfafc", "#f4eff5", "#f7f6f8")
 
 
 class BuildError(RuntimeError):
@@ -81,7 +85,7 @@ def css_scalar(value: Any, token_type: str, path: Tuple[str, ...]) -> str:
     return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
 
 
-def load_tokens() -> List[Dict[str, Any]]:
+def load_source() -> Dict[str, Any]:
     try:
         data = json.loads(SOURCE.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
@@ -89,10 +93,17 @@ def load_tokens() -> List[Dict[str, Any]]:
     except json.JSONDecodeError as exc:
         raise BuildError(f"Invalid JSON in {SOURCE}: {exc}") from exc
 
+    if not isinstance(data, dict):
+        raise BuildError("Expected a Tokens Studio single-file export.")
+    return data
+
+
+def load_tokens(data: Dict[str, Any], brand_set: str) -> List[Dict[str, Any]]:
     tokens: List[Dict[str, Any]] = []
-    for set_name, tree in data.items():
-        if set_name.startswith("$"):
-            continue
+    for set_name in ("global", brand_set, "Semantic/Value"):
+        tree = data.get(set_name, {} if set_name == "global" else None)
+        if not isinstance(tree, dict):
+            raise BuildError(f"Missing or invalid token set: {set_name}")
         for token in walk_tokens(tree, (set_name,)):
             if len(token["segments"]) < 2:
                 continue
@@ -105,6 +116,12 @@ def load_tokens() -> List[Dict[str, Any]]:
 
     if not tokens:
         raise BuildError("No tokens found in the Tokens Studio export.")
+    css_names = set()
+    for token in tokens:
+        name = token["css_name"]
+        if not name or name in css_names:
+            raise BuildError(f"Duplicate or invalid CSS token name: {token['key']}")
+        css_names.add(name)
     return tokens
 
 
@@ -158,11 +175,10 @@ def resolve(
     return resolve(target, lookup, trail + [token["full_key"]])
 
 
-def build_css(tokens: List[Dict[str, Any]], lookup: Dict[str, Dict[str, Any]]) -> str:
-    lines = [
-        "/* Generated from tokens/tokens.json. Do not edit by hand. */",
-        ":root {",
-    ]
+def build_css(
+    tokens: List[Dict[str, Any]], lookup: Dict[str, Dict[str, Any]], selector: str = ":root"
+) -> str:
+    lines = [f"{selector} {{"]
     for token in tokens:
         target = referenced_token(token["value"], lookup)
         if target:
@@ -193,39 +209,87 @@ def build_flattened(tokens: List[Dict[str, Any]], lookup: Dict[str, Dict[str, An
     return flattened
 
 
+def luminance(value: Any) -> float:
+    if not isinstance(value, str) or not re.fullmatch(r"#[a-fA-F0-9]{6}", value):
+        raise BuildError(f"Button contrast checks expect opaque #RRGGBB colors, got {value!r}")
+    channels = [int(value[index : index + 2], 16) / 255 for index in (1, 3, 5)]
+    linear = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return sum(weight * channel for weight, channel in zip((0.2126, 0.7152, 0.0722), linear))
+
+
+def contrast(a: Any, b: Any) -> float:
+    low, high = sorted((luminance(a), luminance(b)))
+    return (high + 0.05) / (low + 0.05)
+
+
+def validate_brand(brand: str, flat: Dict[str, Any]) -> None:
+    roles = (*(f"background.{state}" for state in STATES), "text", "focus-ring")
+    missing = [role for role in roles if BUTTON_TOKEN + role not in flat]
+    if missing:
+        raise BuildError(f"{brand}: missing button tokens: {', '.join(missing)}")
+    colors = {role: flat[BUTTON_TOKEN + role]["$value"] for role in roles}
+    for state in STATES:
+        ratio = contrast(colors["text"], colors[f"background.{state}"])
+        if ratio < 4.5:
+            raise BuildError(f"{brand} {state}: label contrast {ratio:.2f}:1 is below 4.5:1")
+    minimum_ring = min(contrast(colors["focus-ring"], surface) for surface in PREVIEW_SURFACES)
+    if minimum_ring < 3:
+        raise BuildError(f"{brand}: focus ring contrast {minimum_ring:.2f}:1 is below 3:1 on a demo surface")
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--with-storybook", action="store_true", help="Include the Storybook preview link")
     args = parser.parse_args()
 
-    tokens = load_tokens()
-    lookup = make_lookup(tokens)
-    flattened = build_flattened(tokens, lookup)
+    source = load_source()
+    outputs = {}
+    contract = None
+    for brand, token_set in BRANDS.items():
+        tokens = load_tokens(source, token_set)
+        lookup = make_lookup(tokens)
+        flat = build_flattened(tokens, lookup)
+        validate_brand(brand, flat)
+        signature = {key: (token["$type"], token["$css"]) for key, token in flat.items()}
+        if contract is not None and signature != contract:
+            raise BuildError(f"{brand} must expose the same token names and types as Brand A")
+        contract = signature
+        outputs[brand] = (tokens, lookup, flat)
 
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)
     shutil.copytree(SITE, OUTPUT)
     ASSETS.mkdir(parents=True, exist_ok=True)
 
-    (ASSETS / "tokens.css").write_text(build_css(tokens, lookup), encoding="utf-8")
-    (ASSETS / "flattened-tokens.json").write_text(
-        json.dumps(flattened, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
-    shutil.copy2(SOURCE, ASSETS / "tokens.json")
-
+    comment = "/* Generated from tokens/tokens.json. Do not edit by hand. */\n"
     metadata = {
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "commit": os.environ.get("GITHUB_SHA", "local")[:12],
-        "tokenCount": len(tokens),
+        "tokenCount": len(outputs["brand-a"][2]),
         "source": "tokens/tokens.json",
         "storybook": args.with_storybook,
+        "brands": list(BRANDS),
     }
-    (ASSETS / "build.json").write_text(
-        json.dumps(metadata, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    print(f"Built {len(tokens)} tokens into {OUTPUT}")
+    preview_css = comment
+    for brand, (tokens, lookup, flat) in outputs.items():
+        scoped = f'[data-brand="{brand}"]'
+        selector = f":root, {scoped}" if brand == "brand-a" else scoped
+        preview_css += build_css(tokens, lookup, selector)
+        folder = ASSETS / "themes" / brand
+        folder.mkdir(parents=True)
+        (folder / "tokens.css").write_text(comment + build_css(tokens, lookup), encoding="utf-8")
+        shutil.copy2(SITE / "button.css", folder / "button.css")
+        write_json(folder / "tokens.json", flat)
+        write_json(folder / "build.json", {**metadata, "brand": brand, "tokenSet": BRANDS[brand]})
+    (ASSETS / "tokens.css").write_text(preview_css, encoding="utf-8")
+    write_json(ASSETS / "flattened-tokens.json", outputs["brand-a"][2])
+    write_json(ASSETS / "build.json", metadata)
+    shutil.copy2(SOURCE, ASSETS / "tokens.json")
+    print(f"Validated and built {metadata['tokenCount']} tokens per brand into {OUTPUT}")
 
 
 if __name__ == "__main__":

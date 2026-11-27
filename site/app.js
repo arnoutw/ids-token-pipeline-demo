@@ -1,22 +1,40 @@
-async function hydrateBuild() {
-  const status = document.querySelector("#build-status");
-  const buildQuery = new URL(document.querySelector("#token-stylesheet").href).search;
+const picker = document.querySelector("#brand");
+const status = document.querySelector("#build-status");
+const buildQuery = new URL(document.querySelector("#token-stylesheet").href).search;
+
+async function fetchJson(path) {
+  const response = await fetch(`${path}${buildQuery}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Could not load ${path}`);
+  return response.json();
+}
+
+const buildRequest = fetchJson("assets/build.json");
+
+async function showBrand() {
+  const brand = picker.value;
+  const name = brand === "brand-b" ? "Brand B" : "Brand A";
+  const folder = `assets/themes/${brand}`;
+  document.documentElement.dataset.brand = brand;
+  for (const type of ["css", "json"]) {
+    const link = document.querySelector(`#brand-${type}`);
+    link.href = `${folder}/tokens.${type}`;
+    link.textContent = `${name} ${type.toUpperCase()}`;
+  }
   try {
-    const [buildResponse, tokenResponse] = await Promise.all([
-      fetch(`assets/build.json${buildQuery}`, { cache: "no-store" }),
-      fetch(`assets/flattened-tokens.json${buildQuery}`, { cache: "no-store" }),
+    const [build, tokens] = await Promise.all([
+      buildRequest,
+      fetchJson(`${folder}/tokens.json`),
     ]);
-    const build = await buildResponse.json();
-    const tokens = await tokenResponse.json();
-    status.textContent = `${build.tokenCount} tokens · ${build.commit}`;
+    if (picker.value !== brand) return;
+    status.textContent = `${name} · ${build.tokenCount} tokens · ${build.commit}`;
     document.querySelector("#storybook-link").hidden = !build.storybook;
     document.querySelector("#core-value").textContent = tokens["brand.500"].$value;
     document.querySelectorAll("[data-token]").forEach((element) => {
       const item = tokens[element.dataset.token];
       if (item) element.textContent = item.$value;
     });
-  } catch (error) {
-    status.textContent = "Generated assets unavailable";
+  } catch {
+    if (picker.value === brand) status.textContent = "Generated assets unavailable";
   }
 }
 
@@ -29,4 +47,5 @@ document.querySelectorAll(".copy-button").forEach((button) => {
   });
 });
 
-hydrateBuild();
+picker.addEventListener("change", showBrand);
+showBrand();
