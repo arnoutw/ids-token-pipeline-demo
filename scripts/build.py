@@ -20,8 +20,8 @@ OUTPUT = ROOT / "dist" / "site"
 ASSETS = OUTPUT / "assets"
 REFERENCE = re.compile(r"^\{([^{}]+)\}$")
 BRANDS = {"brand-a": "Core/Brand A", "brand-b": "Core/Brand B"}
-BUTTON_TOKEN = "interactive-primary-brand."
-STATES = ("enabled", "hovered", "focused", "pressed")
+BUTTON_TOKEN = "button.primary."
+STATES = ("default", "hover", "focus", "pressed")
 PREVIEW_SURFACES = ("#ffffff", "#fbfafc", "#f4eff5", "#f7f6f8")
 
 
@@ -223,16 +223,16 @@ def contrast(a: Any, b: Any) -> float:
 
 
 def validate_brand(brand: str, flat: Dict[str, Any]) -> None:
-    roles = (*STATES, "label", "ring")
+    roles = (*(f"background.{state}" for state in STATES), "text", "focus-ring")
     missing = [role for role in roles if BUTTON_TOKEN + role not in flat]
     if missing:
         raise BuildError(f"{brand}: missing button tokens: {', '.join(missing)}")
     colors = {role: flat[BUTTON_TOKEN + role]["$value"] for role in roles}
     for state in STATES:
-        ratio = contrast(colors["label"], colors[state])
+        ratio = contrast(colors["text"], colors[f"background.{state}"])
         if ratio < 4.5:
             raise BuildError(f"{brand} {state}: label contrast {ratio:.2f}:1 is below 4.5:1")
-    minimum_ring = min(contrast(colors["ring"], surface) for surface in PREVIEW_SURFACES)
+    minimum_ring = min(contrast(colors["focus-ring"], surface) for surface in PREVIEW_SURFACES)
     if minimum_ring < 3:
         raise BuildError(f"{brand}: focus ring contrast {minimum_ring:.2f}:1 is below 3:1 on a demo surface")
 

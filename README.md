@@ -50,7 +50,7 @@ The demo uses a Tokens Studio single-file export. Git is the build and release s
 
 1. Start a branch from `main`. In Figma, select the `Core` mode for the brand you want to change and edit `brand/500`. Keep the other mode unchanged. In the comparison frame, check the states using the changed brand alongside the other brand.
 2. In Tokens Studio, choose **Styles & Variables → Import variables**. Select both Core modes and the Semantic collection, enable **Convert numbers to dimensions**, then review the import and choose **Import all**.
-3. Without Tokens Studio branching, choose **Load and export → Export to file/folder → Single file**, then enable **All token sets** and **Include parent key**. Compare the export with `tokens/tokens.json`, keep the intended `Core/Brand A`, `Core/Brand B` and `Semantic/Value` sets, and commit the reviewed changes on the branch. An older `Core/Value` set can remain in the plugin after an import and is outside this build.
+3. Without Tokens Studio branching, choose **Load and export → Export to file/folder → Single file**, then enable **All token sets** and **Include parent key**. Compare the export with `tokens/tokens.json` and commit the reviewed changes on the branch. The token sets used by the button are `Core/Brand A`, `Core/Brand B` and `Semantic/Value`.
 
    With Tokens Studio branching enabled, you can also sync directly to the review branch using this provider configuration.
 
@@ -72,12 +72,14 @@ Both brands use the same token chain.
 ```text
 Core / Brand A or Brand B / brand/500
     ↓
-Semantic.interactive-primary-brand.enabled
+Semantic.button.primary.background.default
     ↓
---interactive-primary-brand-enabled
+--button-primary-background-default
     ↓
 .ids-button
 ```
+
+Under `button/primary`, each background state has its own token. The label and ring use `text` and `focus-ring`. The focus example uses a 3px outline and a 2px gap. Give keyboard-focusable controls 5px of clearance inside containers that clip content.
 
 ## Consume a brand
 
