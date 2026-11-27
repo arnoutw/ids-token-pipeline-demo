@@ -53,6 +53,8 @@ main { width: min(1180px, 90vw); margin: 0 auto; }
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 46px; }
 .section-heading h2 { margin: 0; font-size: clamp(30px, 4vw, 48px); letter-spacing: -0.045em; }
 .section-heading > p { max-width: 340px; margin: 0; color: var(--muted); font-size: 13px; text-align: right; }
+.preview-pickers { display: flex; flex-wrap: wrap; gap: 16px; }
+.state-card[hidden] { display: none; }
 .brand-picker { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
 .brand-picker select { min-height: 40px; padding: 0 12px; border: 1px solid var(--muted); border-radius: 6px; background: var(--paper); color: var(--ink); font: inherit; }
 

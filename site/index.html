@@ -14,9 +14,9 @@
       const tokenStylesheet = document.getElementById("token-stylesheet");
       tokenStylesheet.href += `?idsBuildReload=${Date.now()}`;
     </script>
-    <link rel="stylesheet" href="button.css" />
-    <link rel="stylesheet" href="styles.css?v=compact-intro" />
-    <script src="app.js" defer></script>
+    <link rel="stylesheet" href="button.css?v=platforms" />
+    <link rel="stylesheet" href="styles.css?v=platforms" />
+    <script src="app.js?v=platforms" defer></script>
   </head>
   <body>
     <header class="site-header">
@@ -32,7 +32,7 @@
       <section class="hero">
         <h1>IDS token pipeline demo</h1>
         <p class="lede">
-          Switch brands to see the same button change colour and typeface. Each brand gets its own CSS and JSON from the same build.
+          Switch the brand and platform independently. The same button adapts its colours, typeface, size and focus ring.
         </p>
         <div class="flow" aria-label="Pipeline">
           <span>Figma variables</span>
@@ -48,13 +48,24 @@
             <p class="kicker">Component</p>
             <h2>Brand Primary button</h2>
           </div>
-          <div class="brand-picker">
-            <label for="brand">Preview brand</label>
-            <select id="brand">
-              <option value="brand-a">Brand A</option>
-              <option value="brand-b">Brand B</option>
-            </select>
-            <output id="brand-typeface" for="brand"></output>
+          <div class="preview-pickers">
+            <div class="brand-picker">
+              <label for="brand">Preview brand</label>
+              <select id="brand">
+                <option value="brand-a">Brand A</option>
+                <option value="brand-b">Brand B</option>
+              </select>
+              <output id="brand-typeface" for="brand"></output>
+            </div>
+            <div class="brand-picker">
+              <label for="platform">Preview platform</label>
+              <select id="platform">
+                <option value="web">Web</option>
+                <option value="kiosk">Kiosk</option>
+                <option value="onboard">Onboard</option>
+              </select>
+              <output id="platform-size" for="platform"></output>
+            </div>
           </div>
         </div>
 
@@ -64,7 +75,7 @@
             <button class="ids-button" type="button">Label</button>
             <code>background/default</code>
           </article>
-          <article class="state-card">
+          <article class="state-card" id="hover-sample">
             <span class="state-name">Hover</span>
             <button class="ids-button" data-state="hover" type="button">Label</button>
             <code>background/hover</code>
@@ -86,12 +97,14 @@
             <h3>Try the button</h3>
             <p>Hover over it, move focus to it with Tab, or press it.</p>
           </div>
-          <button class="ids-button ids-button--large" type="button">Interactive button</button>
+          <button id="preview-action" class="ids-button ids-button--large" type="button">Continue</button>
         </div>
         <div id="storybook-link" hidden>
           <div class="artifact-links">
             <a href="storybook/?path=/story/ids-brand-primary-button--interactive">Open Button in Storybook</a>
-            <a href="storybook/?path=/story/ids-brand-primary-button--compare-brands">Compare brands in Storybook</a>
+            <a href="storybook/?path=/story/ids-brand-primary-button--compare-platforms">Compare platforms in Storybook</a>
+            <a href="storybook/?path=/story/ids-brand-primary-button--kiosk-touch">Try kiosk touch</a>
+            <a href="storybook/?path=/story/ids-brand-primary-button--onboard-navigation">Try onboard navigation</a>
           </div>
         </div>
       </section>
@@ -135,8 +148,8 @@
 
         <div class="artifact-links">
           <a href="assets/tokens.json">Tokens Studio JSON</a>
-          <a id="brand-json" href="assets/themes/brand-a/tokens.json">Brand A JSON</a>
-          <a id="brand-css" href="assets/themes/brand-a/tokens.css">Brand A CSS</a>
+          <a id="brand-json" href="assets/themes/brand-a/platforms/web/tokens.json">Brand A · Web JSON</a>
+          <a id="brand-css" href="assets/themes/brand-a/platforms/web/tokens.css">Brand A · Web CSS</a>
           <a href="button.css">Shared Button CSS</a>
         </div>
       </section>
@@ -172,7 +185,7 @@
 }
 
 .ids-button:focus-visible {
-  outline: 3px solid var(--button-primary-focus-ring);
+  outline: var(--focus-control-ring-width) solid var(--button-primary-focus-ring);
   outline-offset: 2px;
 }</code></pre>
           </article>

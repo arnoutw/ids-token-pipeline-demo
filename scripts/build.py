@@ -20,6 +20,12 @@ OUTPUT = ROOT / "dist" / "site"
 ASSETS = OUTPUT / "assets"
 REFERENCE = re.compile(r"^\{([^{}]+)\}$")
 BRANDS = {"brand-a": "Core/Brand A", "brand-b": "Core/Brand B"}
+PLATFORMS = {"web": "Platform/Web", "kiosk": "Platform/Kiosk", "onboard": "Platform/Onboard"}
+PLATFORM_TOKENS = (
+    "space.control.inline", "space.control.block", "size.control.min-width",
+    "size.control.min-height", "typography.control.font-size",
+    "typography.control.line-height", "focus.control.ring-width",
+)
 BUTTON_TOKEN = "button.primary."
 STATES = ("default", "hover", "focus", "pressed")
 PREVIEW_SURFACES = ("#ffffff", "#fbfafc", "#f4eff5", "#f7f6f8")
@@ -102,9 +108,9 @@ def load_source() -> Dict[str, Any]:
     return data
 
 
-def load_tokens(data: Dict[str, Any], brand_set: str) -> List[Dict[str, Any]]:
+def load_tokens(data: Dict[str, Any], *sets: str) -> List[Dict[str, Any]]:
     tokens: List[Dict[str, Any]] = []
-    for set_name in ("global", brand_set, "Semantic/Value"):
+    for set_name in sets:
         tree = data.get(set_name, {} if set_name == "global" else None)
         if not isinstance(tree, dict):
             raise BuildError(f"Missing or invalid token set: {set_name}")
@@ -246,6 +252,23 @@ def validate_brand(brand: str, flat: Dict[str, Any]) -> None:
         raise BuildError(f"{brand}: focus ring contrast {minimum_ring:.2f}:1 is below 3:1 on a demo surface")
 
 
+def validate_platform(platform: str, flat: Dict[str, Any]) -> None:
+    for name in PLATFORM_TOKENS:
+        token = flat.get(name, {})
+        value = token.get("$value")
+        if token.get("$type") != "dimension" or not isinstance(value, str) or not re.fullmatch(r"[1-9]\d*px", value):
+            raise BuildError(f"{platform}: {name} must be a positive whole-pixel dimension")
+
+
+def validate_contract(sets: Dict[str, Dict[str, Any]]) -> None:
+    expected = None
+    for name, tokens in sets.items():
+        signature = {key: (token["$type"], token["$css"]) for key, token in tokens.items()}
+        if expected is not None and signature != expected:
+            raise BuildError(f"{name} must expose the same token names and types as the default mode")
+        expected = signature
+
+
 def write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -256,18 +279,29 @@ def main() -> None:
     args = parser.parse_args()
 
     source = load_source()
-    outputs = {}
-    contract = None
+    brand_outputs = {}
     for brand, token_set in BRANDS.items():
-        tokens = load_tokens(source, token_set)
+        tokens = load_tokens(source, "global", token_set, "Semantic/Value")
         lookup = make_lookup(tokens)
         flat = build_flattened(tokens, lookup)
         validate_brand(brand, flat)
-        signature = {key: (token["$type"], token["$css"]) for key, token in flat.items()}
-        if contract is not None and signature != contract:
-            raise BuildError(f"{brand} must expose the same token names and types as Brand A")
-        contract = signature
-        outputs[brand] = (tokens, lookup, flat)
+        brand_outputs[brand] = (tokens, lookup, flat)
+
+    platform_outputs = {}
+    for platform, token_set in PLATFORMS.items():
+        tokens = load_tokens(source, token_set)
+        lookup = make_lookup(tokens)
+        flat = build_flattened(tokens, lookup)
+        validate_platform(platform, flat)
+        platform_outputs[platform] = (tokens, lookup, flat)
+
+    validate_contract({name: flat for name, (_, _, flat) in brand_outputs.items()})
+    validate_contract({name: flat for name, (_, _, flat) in platform_outputs.items()})
+    brand_flat = brand_outputs["brand-a"][2]
+    platform_flat = platform_outputs["web"][2]
+    overlap = {token["$css"] for token in brand_flat.values()} & {token["$css"] for token in platform_flat.values()}
+    if overlap:
+        raise BuildError(f"Brand and platform CSS tokens overlap: {', '.join(sorted(overlap))}")
 
     if OUTPUT.exists():
         shutil.rmtree(OUTPUT)
@@ -278,27 +312,41 @@ def main() -> None:
     metadata = {
         "builtAt": datetime.now(timezone.utc).isoformat(),
         "commit": os.environ.get("GITHUB_SHA", "local")[:12],
-        "tokenCount": len(outputs["brand-a"][2]),
+        "tokenCount": len(brand_flat) + len(platform_flat),
         "source": "tokens/tokens.json",
         "storybook": args.with_storybook,
         "brands": list(BRANDS),
+        "platforms": list(PLATFORMS),
     }
-    preview_css = comment
-    for brand, (tokens, lookup, flat) in outputs.items():
+    platform_css = ""
+    for platform, (tokens, lookup, _) in platform_outputs.items():
+        scoped = f'[data-platform="{platform}"]'
+        selector = f":root, {scoped}" if platform == "web" else scoped
+        platform_css += build_css(tokens, lookup, selector)
+
+    preview_css = comment + platform_css
+    for brand, (tokens, lookup, flat) in brand_outputs.items():
         scoped = f'[data-brand="{brand}"]'
         selector = f":root, {scoped}" if brand == "brand-a" else scoped
         preview_css += build_css(tokens, lookup, selector)
         folder = ASSETS / "themes" / brand
         folder.mkdir(parents=True)
-        (folder / "tokens.css").write_text(comment + build_css(tokens, lookup), encoding="utf-8")
+        brand_css = build_css(tokens, lookup)
+        (folder / "tokens.css").write_text(comment + brand_css + platform_css, encoding="utf-8")
         shutil.copy2(SITE / "button.css", folder / "button.css")
-        write_json(folder / "tokens.json", flat)
+        write_json(folder / "tokens.json", {**flat, **platform_flat})
         write_json(folder / "build.json", {**metadata, "brand": brand, "tokenSet": BRANDS[brand]})
+        for platform, (platform_tokens, platform_lookup, resolved) in platform_outputs.items():
+            platform_folder = folder / "platforms" / platform
+            platform_folder.mkdir(parents=True)
+            (platform_folder / "tokens.css").write_text(comment + brand_css + build_css(platform_tokens, platform_lookup), encoding="utf-8")
+            write_json(platform_folder / "tokens.json", {**flat, **resolved})
+            write_json(platform_folder / "build.json", {**metadata, "brand": brand, "platform": platform})
     (ASSETS / "tokens.css").write_text(preview_css, encoding="utf-8")
-    write_json(ASSETS / "flattened-tokens.json", outputs["brand-a"][2])
+    write_json(ASSETS / "flattened-tokens.json", {**brand_flat, **platform_flat})
     write_json(ASSETS / "build.json", metadata)
     shutil.copy2(SOURCE, ASSETS / "tokens.json")
-    print(f"Validated and built {metadata['tokenCount']} tokens per brand into {OUTPUT}")
+    print(f"Validated {metadata['tokenCount']} tokens across {len(BRANDS)} brands × {len(PLATFORMS)} platforms in {OUTPUT}")
 
 
 if __name__ == "__main__":
