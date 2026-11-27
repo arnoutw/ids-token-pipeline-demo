@@ -49,8 +49,10 @@ Open <http://127.0.0.1:8000/>. For Storybook development on its own, run `pnpm r
 The demo uses a Tokens Studio single-file export. Git is the build and release source. Figma is where design authors and reviews the proposal. The build selects one `Core/Brand A` or `Core/Brand B` set and combines it with `Semantic/Value`.
 
 1. Start a branch from `main`. In Figma, select the `Core` mode for the brand you want to change and edit `brand/500`. Keep the other mode unchanged. In the comparison frame, check the states using the changed brand alongside the other brand.
-2. Import Figma Variables into Tokens Studio and inspect the imported sets. The expected keys are `Core/Brand A`, `Core/Brand B` and `Semantic/Value`. If the plugin creates duplicate sets or imports dimensions differently, export the JSON and review and reconcile it against `tokens/tokens.json` on the branch. The plugin workflow depends on the plan and the file's existing theme mappings.
-3. Use the GitHub sync provider with these settings, or commit the reviewed JSON on the branch.
+2. In Tokens Studio, choose **Styles & Variables → Import variables**. Select both Core modes and the Semantic collection, enable **Convert numbers to dimensions**, then review the import and choose **Import all**.
+3. Without Tokens Studio branching, choose **Load and export → Export to file/folder → Single file**, then enable **All token sets** and **Include parent key**. Compare the export with `tokens/tokens.json`, keep the intended `Core/Brand A`, `Core/Brand B` and `Semantic/Value` sets, and commit the reviewed changes on the branch. An older `Core/Value` set can remain in the plugin after an import and is outside this build.
+
+   With Tokens Studio branching enabled, you can also sync directly to the review branch using this provider configuration.
 
    | Field | Value |
    |---|---|
