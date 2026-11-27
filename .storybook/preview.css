@@ -16,6 +16,23 @@
 .brand-comparison-states { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .state-caption { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
 
+.platform-comparison,
+.platform-demo {
+  box-sizing: border-box;
+  color: #24222a;
+  font-family: Montserrat, Arial, sans-serif;
+  max-width: min(860px, calc(100vw - 48px));
+}
+.platform-comparison { display: grid; gap: 20px; }
+.platform-comparison section,
+.platform-demo { padding: 20px; border-radius: 12px; background: #f7f6f8; }
+.platform-comparison h2 { margin: 0; font-size: 20px; }
+.platform-comparison h3 { margin: 16px 0 10px; font-size: 14px; }
+.platform-samples,
+.platform-actions { display: flex; flex-wrap: wrap; gap: 20px; padding: 8px; }
+.platform-demo p { margin: 0; line-height: 1.5; }
+.platform-demo [role='status'] { margin-top: 10px; font-size: 14px; }
+
 @media (max-width: 550px) {
   .brand-comparison-states { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

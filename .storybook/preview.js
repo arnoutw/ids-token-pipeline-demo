@@ -29,5 +29,9 @@ export default {
   ],
   parameters: {
     layout: 'centered',
+    docs: {
+      codePanel: true,
+      source: { excludeDecorators: true },
+    },
   },
 };
